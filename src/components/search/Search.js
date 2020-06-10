@@ -1,6 +1,8 @@
 import React from 'react'
 import fetchServices from '../../services/FetchServices'
 import Loading from '../loading/Loading'
+import { withRouter } from 'react-router-dom'
+import {debounce} from '../../helpers/debounce'
 import './Search.css'
 
 class Search extends React.Component {
@@ -26,16 +28,65 @@ class Search extends React.Component {
             loading: true
         })
 
+        this.fetchData(value)
+
+        // this.fetchCurrencies(value)
+         
+    }
+
+    fetchCurrencies = async value => {
         const response = await fetchServices.get(`autocomplete?searchQuery=${value}`)
 
         this.setState({
             searchResults: response,
             loading: false
-        })   
+        })  
+    }
+
+    componentDidMount() {
+        this.fetchData = debounce( ( value) => this.fetchCurrencies(value) , 1000)
+    }
+
+    handleRedirect = (id) => {
+        this.setState({
+            searchResults: [],
+            searchQuery: ''
+        })
+        this.props.history.push(`/currency/${id}`)
     }
 
     renderSearchResults = () => {
+        const { loading, searchResults, searchQuery } = this.state;
 
+        if(!searchQuery){
+            return ''
+        }
+
+        if(searchResults.length > 0) {
+            return (
+                <div className="Search-result-container">
+                    {searchResults.map(result => (
+                        <div
+                        key={result.id}
+                        className="Search-result"
+                        onClick={() => this.handleRedirect(result.id)}
+                        >
+                        {result.name} ({result.symbol})
+                        </div>
+                    ))}
+                </div>
+            )
+        }
+
+        if(!loading) {
+            return(
+                <div className="Search-result-container">
+                    <div className="Search-no-result">
+                        No results found.
+                    </div>
+                </div>
+            )
+        }
     }
 
     
@@ -68,4 +119,4 @@ class Search extends React.Component {
     }
 }
 
-export default Search
+export default withRouter(Search)

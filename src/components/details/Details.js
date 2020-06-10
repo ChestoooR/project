@@ -4,7 +4,7 @@ import fetchService from '../../services/FetchServices'
 import Loading from '../loading/Loading'
 import renderChangePercent from '../../helpers/renderChangePercent'
 
-class Details extends Component{
+class Details extends React.PureComponent{
     constructor() {
         super()
 
@@ -21,6 +21,12 @@ class Details extends Component{
             currency: response,
             loading: false
         })
+    }
+
+    componentDidUpdate(prevProps) {
+      if(prevProps.match.params.id !== this.props.match.params.id) {
+        this.getCurrency()
+      }
     }
 
     componentDidMount() {
